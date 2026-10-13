@@ -27,7 +27,11 @@ public class ChannelServiceTest {
         + channelService.findById(channel.getId()).getName());
 
         channelService.delete(channel.getId());
-        System.out.println("채널 삭제: "+
-                (channelService.findById(channel.getId()) == null));
+
+        if (channelService.findById(channel.getId())==null) {
+            System.out.println("채널 삭제 테스트: 통과");
+        }else {
+            throw new AssertionError("체널 삭제 테스트 실패");
+        }
     }
 }

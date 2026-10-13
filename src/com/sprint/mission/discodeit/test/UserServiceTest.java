@@ -31,7 +31,10 @@ public class UserServiceTest {
 
         // 사용자 삭제
         userService.deleteById(user.getId());
-        System.out.println("사용자 삭제: "
-                + userService.findById(user.getId()).isEmpty());
+        if (userService.findById(user.getId()).isEmpty()) {
+            System.out.println("사용자 삭제 테스트: 통과");
+        }else {
+            throw new AssertionError("사용자 삭제 테스트 실패");
+        }
     }
 }

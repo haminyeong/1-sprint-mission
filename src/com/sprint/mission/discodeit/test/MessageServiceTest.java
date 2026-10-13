@@ -40,8 +40,11 @@ public class MessageServiceTest {
                 +messageService.findById(message.getId()).getContent());
 
         messageService.delete(message.getId());
-        System.out.println("메시지 삭제: "
-                +(messageService.findById(message.getId()) == null));
+        if (messageService.findById(message.getId())== null) {
+            System.out.println("메시지 삭제 테스트: 통과");
+        }else {
+            throw new AssertionError("메시지 삭제 테스트 실패");
+        }
 
         try {
             messageService.create(

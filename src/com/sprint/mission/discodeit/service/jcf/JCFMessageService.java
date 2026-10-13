@@ -22,7 +22,7 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(String content, UUID authorId, UUID channelId) {
-        if (userService.findById(authorId) == null) {
+        if (userService.findById(authorId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 사용자 입니다.");
         }
         if (channelService.findById(channelId) ==null) {

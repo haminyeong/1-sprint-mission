@@ -13,7 +13,8 @@ public class JavaApplication {
         JCFUserService user3 = JCFUserService.getInstance();
         JCFUserService user4 = JCFUserService.getInstance();
 
-        System.out.println("같은 객체인가?" + (user3 == user4));
+        System.out.println("같은 객체인가요?" + (user3 == user4));
+        System.out.println("팩토리와 싱글턴이 같은 사용자 서비스 인가요?" +(JCFUserService.getInstance()== ServiceFactory.userService()));
 
         // 1. 사용자 CRUD 테스트
         JCFUserService userService = ServiceFactory.userService();

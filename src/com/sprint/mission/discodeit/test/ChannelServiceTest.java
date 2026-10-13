@@ -13,18 +13,39 @@ public class ChannelServiceTest {
                 "테스트 채널",
                 "채널 테스트용 설명"
         );
-        System.out.println("채널 등록:"
-        +channelService.findById(channel.getId()).getName());
+        Channel foundChannel = channelService.findById(channel.getId());
 
-        System.out.println("채널 전체 조회:" + channelService.findAll().size());
+        if (foundChannel != null
+                &&"테스트 채널".equals(foundChannel.getName())) {
+            System.out.println("채널 등록 테스트: 통과");
+        }else {
+            throw new AssertionError("채널 등록 테스트 실패");
+        }
 
-        channelService.update(
-                channel.getId(),
-                "수정 채널",
-                "수정된 설명"
-        );
-        System.out.println("채널 수정:"
-        + channelService.findById(channel.getId()).getName());
+        boolean channelFound = channelService.findAll().stream()
+                .anyMatch(item ->
+                        item.getId().equals(channel.getId())
+                                && "테스트 채널".equals(item.getName())
+                                && "채널 테스트용 설명".equals(item.getDescription()));
+
+        if (channelFound) {
+            System.out.println("채널 조회 테스트: 통과");
+        } else {
+            throw new AssertionError("채널 조회 테스트 실패");
+        }
+
+        channelService.update(channel.getId(), "수정된 채널", "수정된 설명");
+
+        Channel updatedChannel = channelService.findById(channel.getId());
+
+        if (updatedChannel != null
+                && "수정된 채널".equals(updatedChannel.getName())
+                && "수정된 설명".equals(updatedChannel.getDescription())) {
+            System.out.println("채널 수정 테스트: 통과");
+        } else {
+            throw new AssertionError("채널 수정 테스트 실패");
+        }
+
 
         channelService.delete(channel.getId());
 

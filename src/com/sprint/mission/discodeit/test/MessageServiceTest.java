@@ -29,15 +29,36 @@ public class MessageServiceTest {
                 user.getId(),
                 channel.getId()
         );
-        System.out.println("메시지 등록: "
-        +messageService .findById(message.getId()).getContent());
+        Message foundMessage = messageService.findById(message.getId());
 
-        System.out.println("메시지 전체 조회: "
-        +messageService.findAll().size());
+        if (foundMessage != null
+                && "첫 번째 메시지".equals(foundMessage.getContent())) {
+            System.out.println("메시지 등록 테스트: 통과");
+        } else {
+            throw new AssertionError("메시지 등록 테스트 실패");
+        }
+
+        boolean messageFound = messageService.findAll().stream()
+                .anyMatch(item ->
+                        item.getId().equals(message.getId())
+                                && "첫 번째 메시지".equals(item.getContent()));
+
+        if (messageFound) {
+            System.out.println("메시지 조회 테스트: 통과");
+        } else {
+            throw new AssertionError("메시지 조회 테스트 실패");
+        }
 
         messageService.update(message.getId(), "수정된 메시지");
-        System.out.println("메시지 수정: "
-                +messageService.findById(message.getId()).getContent());
+
+        Message updatedMessage = messageService.findById(message.getId());
+
+        if (updatedMessage != null
+                && "수정된 메시지".equals(updatedMessage.getContent())) {
+            System.out.println("메시지 수정 테스트: 통과");
+        } else {
+            throw new AssertionError("메시지 수정 테스트 실패");
+        }
 
         messageService.delete(message.getId());
         if (messageService.findById(message.getId())== null) {

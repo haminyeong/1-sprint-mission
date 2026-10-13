@@ -13,21 +13,34 @@ public class UserServiceTest {
 
         // 사용자 등록
         userService.create(user);
-        System.out.println("사용자 등록: "
-                + userService.findById(user.getId()).isPresent());
+        if (userService.findById(user.getId()).isPresent()) {
+            System.out.println("사용자 등록 테스트: 통과");
+        }else {
+            throw new AssertionError("사용자 등록 테스트 실패");
+        }
 
         // 사용자 조회
-        System.out.println("사용자 조회: "
-                + userService.findById(user.getId()).get().getName());
+        User foundUser = userService.findById(user.getId())
+                .orElseThrow(() -> new AssertionError("사용자 조회 실패"));
+
+        if ("테스트 사용자".equals(foundUser.getName())) {
+            System.out.println("사용자 조회 테스트: 통과");
+        }else {
+            throw new AssertionError("사용자 이름이 예상과 다릅니다.");
+        }
 
         // 사용자 수정
-        userService.update(
-                user.getId(),
-                "수정된 사용자",
-                "updated@example.com"
-        );
-        System.out.println("사용자 수정: "
-                + userService.findById(user.getId()).get().getName());
+        userService.update(user.getId(), "수정된 사용자", "updated@example.com");
+
+        User updatedUser = userService.findById(user.getId())
+                .orElseThrow(() -> new AssertionError("수정된 사용자 조회 실패"));
+
+        if ("수정된 사용자".equals(updatedUser.getName())
+                && "updated@example.com".equals(updatedUser.getEmail())) {
+            System.out.println("사용자 수정 테스트: 통과");
+        } else {
+            throw new AssertionError("사용자 수정 테스트 실패");
+        }
 
         // 사용자 삭제
         userService.deleteById(user.getId());

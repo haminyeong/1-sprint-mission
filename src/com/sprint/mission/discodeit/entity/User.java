@@ -5,7 +5,7 @@ import java.util.UUID;
 public class User {
     private final UUID id;
     private final Long createdAt;
-    private Long updateAt;
+    private Long updatedAt;
 
     private String name;
     private String email;
@@ -13,7 +13,7 @@ public class User {
     public User(String name, String email) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
-        this.updateAt = this.createdAt;
+        this.updatedAt = this.createdAt;
 
         this.name = name;
         this.email = email;
@@ -27,8 +27,8 @@ public class User {
         return createdAt;
     }
 
-    public Long getUpdateAt() {
-        return updateAt;
+    public Long getUpdatedAt() {
+        return updatedAt;
     }
 
     public String getName() {
@@ -42,6 +42,6 @@ public class User {
     public void update(String name, String email) {
         this.name = name;
         this.email = email;
-        this.updateAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 }

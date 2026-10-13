@@ -10,7 +10,7 @@ public class JCFUserService implements UserService {
 
     private final Map<UUID, User> data;
     private static final JCFUserService INSTANCE = new JCFUserService();
-    public JCFUserService() {
+    private JCFUserService() {
         this.data = new HashMap<>();
     }
     public static JCFUserService getInstance() {

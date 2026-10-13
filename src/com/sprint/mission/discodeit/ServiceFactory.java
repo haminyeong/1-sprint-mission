@@ -11,7 +11,7 @@ public class ServiceFactory {
     private static final JCFChannelService CHANNEL_SERVICE=
             new JCFChannelService();
 
-    public static final JCFMessageService MESSEAGE_SERVICE =
+    public static final JCFMessageService MESSAGE_SERVICE =
             new JCFMessageService(USER_SERVICE, CHANNEL_SERVICE);
 
     private ServiceFactory() {
@@ -23,6 +23,6 @@ public class ServiceFactory {
         return CHANNEL_SERVICE;
     }
     public static JCFMessageService messageService() {
-        return MESSEAGE_SERVICE;
+        return MESSAGE_SERVICE;
     }
 }

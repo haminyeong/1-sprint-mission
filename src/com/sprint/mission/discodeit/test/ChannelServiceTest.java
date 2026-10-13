@@ -52,7 +52,7 @@ public class ChannelServiceTest {
         if (channelService.findById(channel.getId())==null) {
             System.out.println("채널 삭제 테스트: 통과");
         }else {
-            throw new AssertionError("체널 삭제 테스트 실패");
+            throw new AssertionError("채널 삭제 테스트 실패");
         }
     }
 }

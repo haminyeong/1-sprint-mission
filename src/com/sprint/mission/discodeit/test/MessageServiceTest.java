@@ -67,24 +67,32 @@ public class MessageServiceTest {
             throw new AssertionError("메시지 삭제 테스트 실패");
         }
 
+
+        // 잘못된 사용자 검증
         try {
             messageService.create(
                     "잘못된 사용자 메시지",
                     UUID.randomUUID(),
                     channel.getId()
             );
-            System.out.println("잘못된 사용자 검증: 실패");
-        }catch (IllegalArgumentException e) {
+            throw new AssertionError(
+                    "잘못된 사용자 검증 실패: 존재하지 않는 사용자가 허용됨"
+            );
+        } catch (IllegalArgumentException e) {
             System.out.println("잘못된 사용자 검증: 통과");
         }
+
+        // 잘못된 채널 검증
         try {
             messageService.create(
                     "잘못된 채널 메시지",
                     user.getId(),
                     UUID.randomUUID()
             );
-            System.out.println("잘못된 채널 검증: 실패");
-        }catch (IllegalArgumentException e) {
+            throw new AssertionError(
+                    "잘못된 채널 검증 실패: 존재하지 않는 채널이 허용됨"
+            );
+        } catch (IllegalArgumentException e) {
             System.out.println("잘못된 채널 검증: 통과");
         }
     }

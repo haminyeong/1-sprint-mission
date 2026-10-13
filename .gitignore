@@ -29,3 +29,14 @@ bin/
 ### Mac OS ###
 .DS_Store
 .idea/
+
+# Gradle cache and build output
+.gradle/
+**/.gradle/
+build/
+**/build/
+# Gradle cache and build output
+.gradle/
+**/.gradle/
+build/
+**/build/

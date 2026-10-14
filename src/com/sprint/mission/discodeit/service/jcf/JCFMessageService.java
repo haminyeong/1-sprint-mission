@@ -6,16 +6,15 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class JCFMessageService implements MessageService {
-    private final Map<UUID, Message> messages;
+    private final Map<UUID, Message> data;
     private final UserService userService;
     private final ChannelService channelService;
 
     public JCFMessageService(UserService userService, ChannelService channelService) {
-        this.messages = new HashMap<>();
+        this.data = new HashMap<>();
         this.userService = userService;
         this.channelService = channelService;
     }
@@ -29,22 +28,22 @@ public class JCFMessageService implements MessageService {
             throw new IllegalArgumentException("존재하지 않는 채널입니다.");
         }
         Message message = new Message(content,authorId,channelId);
-        messages.put(message.getId(),message);
+        data.put(message.getId(),message);
         return message;
     }
     @Override
     public Message findById(UUID id) {
-        return messages.get(id);
+        return data.get(id);
     }
     @Override
     public List<Message> findAll() {
-        return messages.values()
+        return data.values()
                 .stream()
                 .collect(Collectors.toList());
     }
     @Override
     public Message update(UUID id, String content) {
-        Message message = messages.get(id);
+        Message message = data.get(id);
 
         if (message == null) {
             return null;
@@ -54,6 +53,6 @@ public class JCFMessageService implements MessageService {
     }
     @Override
     public void delete(UUID id) {
-        messages.remove(id);
+        data.remove(id);
     }
 }

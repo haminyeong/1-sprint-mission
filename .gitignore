@@ -35,3 +35,7 @@ bin/
 **/.gradle/
 build/
 **/build/
+
+# Local and IDE-specific files
+1-sprint-mission.iml
+app.txt

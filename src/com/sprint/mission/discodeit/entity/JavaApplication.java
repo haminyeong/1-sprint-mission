@@ -57,8 +57,11 @@ public class JavaApplication {
 
         userService.deleteById(user2.getId());
 
-        System.out.println("삭제 후 사용자 존재 여부: "
-                + userService.findById(user2.getId()).isPresent());
+        if (!userService.findById(user2.getId()).isPresent()) {
+            System.out.println("사용자 삭제 테스트 성공");
+        } else {
+            throw new AssertionError("사용자 삭제 테스트 실패");
+        }
 
         // 3. 채널 CRUD 테스트
         System.out.println("\n=== 채널 CRUD 테스트 ===");
@@ -88,8 +91,11 @@ public class JavaApplication {
 
         channelService.delete(channel1.getId());
 
-        System.out.println("삭제 후 채널 존재 여부: "
-                + (channelService.findById(channel1.getId()) != null));
+        if (channelService.findById(channel1.getId()) == null) {
+            System.out.println("채널 삭제 테스트 성공");
+        } else {
+            throw new AssertionError("채널 삭제 테스트 실패");
+        }
 
         // 4. 메시지 CRUD 테스트
         System.out.println("\n=== 메시지 CRUD 테스트 ===");
@@ -130,8 +136,11 @@ public class JavaApplication {
 
         messageService.delete(message.getId());
 
-        System.out.println("삭제 후 메시지 존재 여부: "
-                + (messageService.findById(message.getId()) != null));
+        if (messageService.findById(message.getId()) == null) {
+            System.out.println("메시지 삭제 테스트 성공");
+        } else {
+            throw new AssertionError("메시지 삭제 테스트 실패");
+        }
 
         // 5. 잘못된 사용자 ID 검증
         System.out.println("\n=== 잘못된 사용자 테스트 ===");

@@ -13,7 +13,8 @@ public class ChannelServiceTest {
                 "테스트 채널",
                 "채널 테스트용 설명"
         );
-        Channel foundChannel = channelService.findById(channel.getId());
+        Channel foundChannel = channelService.findById(channel.getId())
+                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
         if (foundChannel != null
                 &&"테스트 채널".equals(foundChannel.getName())) {
@@ -36,7 +37,8 @@ public class ChannelServiceTest {
 
         channelService.update(channel.getId(), "수정된 채널", "수정된 설명");
 
-        Channel updatedChannel = channelService.findById(channel.getId());
+        Channel updatedChannel = channelService.findById(channel.getId())
+                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
         if (updatedChannel != null
                 && "수정된 채널".equals(updatedChannel.getName())
@@ -49,7 +51,7 @@ public class ChannelServiceTest {
 
         channelService.delete(channel.getId());
 
-        if (channelService.findById(channel.getId())==null) {
+        if (channelService.findById(channel.getId()).isEmpty()) {
             System.out.println("채널 삭제 테스트: 통과");
         }else {
             throw new AssertionError("채널 삭제 테스트 실패");

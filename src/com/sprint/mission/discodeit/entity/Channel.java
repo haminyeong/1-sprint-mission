@@ -1,34 +1,22 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Channel {
-
-    private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
+public class Channel extends BaseEntity {
 
     private String name;
     private String description;
+    private List<User> users = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
 
     public Channel(String name, String description) {
-        this.id = UUID.randomUUID();
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        super();
 
         this.name = name;
         this.description = description;
     }
 
-    public UUID getId() {
-        return id;
-    }
-    public Long getCreatedAt() {
-        return createdAt;
-    }
-    public Long getUpdatedAt() {
-        return  updatedAt;
-    }
     public String getName() {
         return name;
     }
@@ -39,6 +27,30 @@ public class Channel {
     public void update(String name, String description) {
         this.name = name;
         this.description = description;
-        this.updatedAt = System.currentTimeMillis();
+        updateUpdatedAt();
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+    public List<Message> getMessages() {
+        return messages;
+    }
+    public void addUser(User user) {
+        users.add(user);
+    }
+    public void removeUser(User user) {
+        users.remove(user);
+    }
+    public void addMessage(Message message) {
+        messages.add(message);
+    }
+
+    public void removeMessage(Message message) {
+        messages.remove(message);
+    }
+
+    public boolean hasUser(User user) {
+        return users.contains(user);
     }
 }

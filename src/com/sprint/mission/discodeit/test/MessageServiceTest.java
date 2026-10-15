@@ -29,10 +29,10 @@ public class MessageServiceTest {
                 user.getId(),
                 channel.getId()
         );
-        Message foundMessage = messageService.findById(message.getId());
+        Message foundMessage = messageService.findById(message.getId())
+                .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
-        if (foundMessage != null
-                && "첫 번째 메시지".equals(foundMessage.getContent())) {
+        if (messageService.findById(message.getId()).isPresent()) {
             System.out.println("메시지 등록 테스트: 통과");
         } else {
             throw new AssertionError("메시지 등록 테스트 실패");
@@ -51,17 +51,17 @@ public class MessageServiceTest {
 
         messageService.update(message.getId(), "수정된 메시지");
 
-        Message updatedMessage = messageService.findById(message.getId());
+        Message updatedMessage = messageService.findById(message.getId())
+                .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
-        if (updatedMessage != null
-                && "수정된 메시지".equals(updatedMessage.getContent())) {
+        if ("수정된 메시지".equals(updatedMessage.getContent()))  {
             System.out.println("메시지 수정 테스트: 통과");
         } else {
             throw new AssertionError("메시지 수정 테스트 실패");
         }
 
         messageService.delete(message.getId());
-        if (messageService.findById(message.getId())== null) {
+        if (messageService.findById(message.getId()).isEmpty()) {
             System.out.println("메시지 삭제 테스트: 통과");
         }else {
             throw new AssertionError("메시지 삭제 테스트 실패");

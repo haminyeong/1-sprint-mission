@@ -2,12 +2,12 @@ package com.sprint.mission.discodeit.test;
 
 import com.sprint.mission.discodeit.ServiceFactory;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.UserService;
 
 public class UserServiceTest {
 
     public static void main(String[] args) {
-        JCFUserService userService = ServiceFactory.userService();
+        UserService userService = ServiceFactory.userService();
 
         User user = new User("테스트 사용자", "test@example.com");
 

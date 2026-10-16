@@ -4,18 +4,19 @@ import com.sprint.mission.discodeit.ServiceFactory;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.UUID;
 
 public class MessageServiceTest {
 
     public static void main(String[] args) {
-        JCFUserService userService = ServiceFactory.userService();
-        JCFChannelService channelService = ServiceFactory.channelService();
-        JCFMessageService messageService = ServiceFactory.messageService();
+        UserService userService = ServiceFactory.userService();
+        ChannelService channelService = ServiceFactory.channelService();
+        MessageService messageService = ServiceFactory.messageService();
+
 
         User user = new User("메시지 테스트 사용자", "message@example.com");
         userService.create(user);

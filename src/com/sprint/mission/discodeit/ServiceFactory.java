@@ -3,6 +3,9 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 
 public class ServiceFactory {
 
@@ -24,16 +27,18 @@ public class ServiceFactory {
     }
 
 
-    public static JCFUserService userService() {
+
+    public static UserService userService() {
         return USER_SERVICE;
     }
 
-    public static JCFChannelService channelService() {
+    public static ChannelService channelService() {
         return CHANNEL_SERVICE;
     }
 
-    public static JCFMessageService messageService() {
+    public static MessageService messageService() {
         return MESSAGE_SERVICE;
     }
+
 
 }

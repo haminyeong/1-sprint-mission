@@ -2,11 +2,11 @@ package com.sprint.mission.discodeit.test;
 
 import com.sprint.mission.discodeit.ServiceFactory;
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
+import com.sprint.mission.discodeit.service.ChannelService;
 
 public class ChannelServiceTest {
     public static void main(String[] args) {
-        JCFChannelService channelService =
+        ChannelService channelService =
                 ServiceFactory.channelService();
 
         Channel channel = channelService.create(

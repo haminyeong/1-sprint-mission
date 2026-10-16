@@ -31,19 +31,26 @@ public class Channel extends BaseEntity {
     }
 
     public List<User> getUsers() {
-        return users;
+        return List.copyOf(users);
     }
     public List<Message> getMessages() {
-        return messages;
+        return List.copyOf(messages);
     }
+
     public void addUser(User user) {
-        users.add(user);
+        if (!users.contains(user)) {
+            users.add(user);
+        }
     }
+
     public void removeUser(User user) {
         users.remove(user);
     }
+
     public void addMessage(Message message) {
-        messages.add(message);
+        if (!messages.contains(message)) {
+            messages.add(message);
+        }
     }
 
     public void removeMessage(Message message) {

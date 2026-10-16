@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class JCFMessageService implements MessageService {
 
@@ -31,6 +30,18 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(String content, UUID authorId, UUID channelId) {
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
+        }
+
+        if (authorId == null) {
+            throw new IllegalArgumentException("작성자 ID는 필수입니다.");
+        }
+
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
 
         // 1. 작성자가 존재하는지 확인
         User user = userService.findById(authorId)
@@ -66,9 +77,7 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public List<Message> findAll() {
-        return data.values()
-                .stream()
-                .collect(Collectors.toList());
+        return List.copyOf(data.values());
     }
 
     @Override
@@ -83,45 +92,33 @@ public class JCFMessageService implements MessageService {
                     "메시지를 찾을 수 없습니다."
             );
         }
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
+        }
 
         // 3. 메시지 수정
         message.update(content);
-
         return message;
     }
 
     @Override
     public void delete(UUID id) {
-
         // 1. 삭제할 메시지 조회
         Message message = data.get(id);
 
-        // 2. 메시지가 없으면 예외 발생
         if (message == null) {
-            throw new IllegalArgumentException(
-                    "메시지를 찾을 수 없습니다."
-            );
+            throw new IllegalArgumentException("메시지를 찾을 수 없습니다.");
         }
 
-        // 3. 작성자 조회
-        User user = userService.findById(message.getAuthorId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "사용자를 찾을 수 없습니다."
-                        ));
-
-        // 4. 채널 조회
-        Channel channel = channelService.findById(message.getChannelId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "채널을 찾을 수 없습니다."
-                        ));
-
-        // 5. 사용자와 채널의 메시지 목록에서 제거
-        user.removeMessage(message);
-        channel.removeMessage(message);
-
-        // 6. 메시지 저장소에서 제거
+        // 2. 실제 메시지 저장소에서 삭제
         data.remove(id);
+
+        // 3. 작성자의 메시지 목록에서 제거
+        userService.findById(message.getAuthorId())
+                .ifPresent(user -> user.removeMessage(message));
+
+        // 4. 채널의 메시지 목록에서 제거
+        channelService.findById(message.getChannelId())
+                .ifPresent(channel -> channel.removeMessage(message));
     }
 }

@@ -7,16 +7,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.Optional;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.service.MessageService;
 
 public class JCFChannelService implements ChannelService {
 
     private final Map<UUID, Channel> data;
     private final UserService userService;
+    private MessageService messageService;
+
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
+    }
 
     public JCFChannelService(UserService userService) {
         this.data = new HashMap<>();
@@ -25,6 +30,14 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel create(String name, String description) {
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("채널 설명은 필수입니다.");
+        }
 
         // 같은 이름의 채널이 있는지 확인
         boolean nameExists = data.values()
@@ -52,9 +65,7 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public List<Channel> findAll() {
-        return data.values()
-                .stream()
-                .collect(Collectors.toList());
+        return List.copyOf(data.values());
     }
 
     @Override
@@ -63,6 +74,14 @@ public class JCFChannelService implements ChannelService {
 
         if (channel == null) {
             throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+        }
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("채널 설명은 필수입니다.");
         }
 
         // 현재 채널을 제외하고 같은 이름이 있는지 확인
@@ -80,9 +99,9 @@ public class JCFChannelService implements ChannelService {
         return channel;
     }
 
+
     @Override
     public void delete(UUID id) {
-
         // 1. 삭제할 채널 조회
         Channel channel = data.get(id);
 
@@ -90,24 +109,21 @@ public class JCFChannelService implements ChannelService {
             throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
         }
 
-        // 2. 참여 사용자와의 관계 제거
+        // 2. 채널에 연결된 메시지를 실제 메시지 저장소에서도 삭제
+        for (Message message : new java.util.ArrayList<>(channel.getMessages())) {
+            messageService.delete(message.getId());
+        }
+
+        // 3. 참여 사용자와의 관계 제거
         for (User user : new java.util.ArrayList<>(channel.getUsers())) {
             user.removeChannel(channel);
             channel.removeUser(user);
         }
 
-        // 3. 채널에 연결된 메시지의 작성자 관계 제거
-        for (Message message : new java.util.ArrayList<>(channel.getMessages())) {
-            userService.findById(message.getAuthorId())
-                    .ifPresent(user -> user.removeMessage(message));
-        }
-
-        // 4. 채널에 연결된 메시지 목록 비우기
-        channel.getMessages().clear();
-
-        // 5. 채널 저장소에서 제거
+        // 4. 채널 저장소에서 제거
         data.remove(id);
     }
+
 
     @Override
     public void join(UUID channelId, UUID userId) {

@@ -31,11 +31,11 @@ public class User extends BaseEntity  {
         updateUpdatedAt();
     }
     public List<Message> getMessages() {
-        return messages;
+        return List.copyOf(messages);
     }
 
     public List<Channel> getChannels() {
-        return channels;
+        return List.copyOf(channels);
     }
 
     public void addMessage(Message message) {

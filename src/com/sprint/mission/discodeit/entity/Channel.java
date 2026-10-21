@@ -60,4 +60,18 @@ public class Channel extends BaseEntity {
     public boolean hasUser(User user) {
         return users.contains(user);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Channel channel = (Channel) obj;
+        return getId().equals(channel.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
+    }
 }

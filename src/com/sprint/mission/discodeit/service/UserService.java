@@ -12,4 +12,5 @@ public interface UserService {
     List<User> findAll();
     User update(UUID id, String name, String email);
     void deleteById(UUID id);
+    User save(User user);
 }

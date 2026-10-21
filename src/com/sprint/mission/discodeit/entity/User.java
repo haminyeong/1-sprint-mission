@@ -53,12 +53,29 @@ public class User extends BaseEntity  {
     public void removeChannel(Channel channel) {
         channels.remove(channel);
     }
-
     public void removeMessage(Message message) {
         messages.remove(message);
     }
-
     public boolean hasChannel(Channel channel) {
         return channels.contains(channel);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        User user = (User) obj;
+        return getId().equals(user.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
     }
 }

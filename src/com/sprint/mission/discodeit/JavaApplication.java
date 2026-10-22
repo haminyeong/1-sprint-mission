@@ -3,27 +3,61 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 
 import java.util.UUID;
 
 public class JavaApplication {
 
     public static void main(String[] args) {
-        UserService userService = ServiceFactory.userService();
-        ChannelService channelService = ServiceFactory.channelService();
-        MessageService messageService = ServiceFactory.messageService();
 
-        // 실행할 때마다 이메일과 채널 이름이 겹치지 않도록 고유한 값을 사용합니다.
+        // 1. Basic 서비스 초기화 및 Repository 의존성 주입
+        BasicUserService basicUserService =
+                new BasicUserService(new FileUserRepository());
+
+        BasicChannelService basicChannelService =
+                new BasicChannelService(
+                        new FileChannelRepository(),
+                        basicUserService
+                );
+
+        BasicMessageService basicMessageService =
+                new BasicMessageService(
+                        new FileMessageRepository(),
+                        basicUserService,
+                        basicChannelService
+                );
+
+        // 2. 서비스 간 의존성 연결
+        basicUserService.setMessageService(basicMessageService);
+        basicUserService.setChannelService(basicChannelService);
+        basicChannelService.setMessageService(basicMessageService);
+
+        // 3. 서비스 인터페이스로 사용
+        UserService userService = basicUserService;
+        ChannelService channelService = basicChannelService;
+        MessageService messageService = basicMessageService;
+
+        // 실행할 때마다 이메일과 채널 이름이 겹치지 않도록 고유한 값 사용
         String testId = UUID.randomUUID().toString().substring(0, 8);
 
         System.out.println("\n=== 사용자 CRUD 테스트 ===");
+
         User user1 = userService.create(
-                new User("민영 " + testId, "minyeong-" + testId + "@example.com"));
+                new User("민영 " + testId,
+                        "minyeong-" + testId + "@example.com"));
+
         User user2 = userService.create(
-                new User("민석 " + testId, "minseok-" + testId + "@example.com"));
+                new User("민석 " + testId,
+                        "minseok-" + testId + "@example.com"));
 
         System.out.println("사용자 등록 완료");
         System.out.println("사용자 조회: "
@@ -34,11 +68,17 @@ public class JavaApplication {
             System.out.println(user.getName() + " / " + user.getEmail());
         }
 
-        userService.update(user1.getId(), "민영 수정 " + testId, user1.getEmail());
+        userService.update(
+                user1.getId(),
+                "민영 수정 " + testId,
+                user1.getEmail()
+        );
+
         System.out.println("수정 후 사용자: "
                 + userService.findById(user1.getId()).orElseThrow().getName());
 
         userService.deleteById(user2.getId());
+
         if (userService.findById(user2.getId()).isEmpty()) {
             System.out.println("사용자 삭제 테스트 성공");
         } else {
@@ -46,7 +86,9 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 중복 사용자 이메일 테스트 ===");
+
         String duplicateEmail = "duplicate-" + testId + "@example.com";
+
         userService.create(new User("테스트 사용자 1", duplicateEmail));
 
         try {
@@ -57,10 +99,14 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 채널 CRUD 테스트 ===");
+
         Channel channel1 = channelService.create(
-                "자유 채팅 " + testId, "자유롭게 이야기하는 채널");
+                "자유 채팅 " + testId,
+                "자유롭게 이야기하는 채널"
+        );
 
         System.out.println("\n=== 채널 참여 및 나가기 테스트 ===");
+
         channelService.join(channel1.getId(), user1.getId());
 
         try {
@@ -72,10 +118,12 @@ public class JavaApplication {
 
         Channel latestChannel =
                 channelService.findById(channel1.getId()).orElseThrow();
+
         User latestUser =
                 userService.findById(user1.getId()).orElseThrow();
 
-        if (latestChannel.hasUser(latestUser) && latestUser.hasChannel(latestChannel)) {
+        if (latestChannel.hasUser(latestUser)
+                && latestUser.hasChannel(latestChannel)) {
             System.out.println("채널 참여 테스트 성공");
         } else {
             throw new AssertionError("채널 참여 테스트 실패");
@@ -83,10 +131,14 @@ public class JavaApplication {
 
         channelService.leave(channel1.getId(), user1.getId());
 
-        latestChannel = channelService.findById(channel1.getId()).orElseThrow();
-        latestUser = userService.findById(user1.getId()).orElseThrow();
+        latestChannel =
+                channelService.findById(channel1.getId()).orElseThrow();
 
-        if (!latestChannel.hasUser(latestUser) && !latestUser.hasChannel(latestChannel)) {
+        latestUser =
+                userService.findById(user1.getId()).orElseThrow();
+
+        if (!latestChannel.hasUser(latestUser)
+                && !latestUser.hasChannel(latestChannel)) {
             System.out.println("채널 나가기 테스트 성공");
         } else {
             throw new AssertionError("채널 나가기 테스트 실패");
@@ -109,7 +161,10 @@ public class JavaApplication {
         }
 
         channelService.update(
-                channel1.getId(), "공지 채널 " + testId, "공지사항을 전달하는 채널");
+                channel1.getId(),
+                "공지 채널 " + testId,
+                "공지사항을 전달하는 채널"
+        );
 
         System.out.println("수정 후 채널: "
                 + channelService.findById(channel1.getId()).orElseThrow().getName());
@@ -123,18 +178,23 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 채널 삭제 후 사용자 관계 제거 테스트 ===");
+
         User relationUser = userService.create(
-                new User("관계 테스트 사용자 " + testId, "relation-" + testId + "@example.com"));
+                new User("관계 테스트 사용자 " + testId,
+                        "relation-" + testId + "@example.com"));
 
         Channel relationChannel = channelService.create(
-                "관계 테스트 채널 " + testId, "채널 삭제 관계 테스트");
+                "관계 테스트 채널 " + testId,
+                "채널 삭제 관계 테스트"
+        );
 
         channelService.join(relationChannel.getId(), relationUser.getId());
 
-        // 삭제 전에는 저장소에서 다시 읽은 최신 객체로 관계를 확인합니다.
         relationChannel =
                 channelService.findById(relationChannel.getId()).orElseThrow();
-        relationUser = userService.findById(relationUser.getId()).orElseThrow();
+
+        relationUser =
+                userService.findById(relationUser.getId()).orElseThrow();
 
         if (!relationUser.hasChannel(relationChannel)
                 || !relationChannel.hasUser(relationUser)) {
@@ -146,16 +206,17 @@ public class JavaApplication {
 
         channelService.delete(relationChannelId);
 
-        // 삭제 서비스가 파일에 저장한 최신 사용자 데이터를 다시 읽어서 확인합니다.
         User userAfterChannelDelete =
                 userService.findById(relationUserId).orElseThrow();
 
         boolean userRelationshipRemoved =
                 !userAfterChannelDelete.hasChannel(relationChannel);
+
         boolean channelRemoved =
                 channelService.findById(relationChannelId).isEmpty();
 
-        System.out.println("저장된 사용자 채널 목록에서 제거: " + userRelationshipRemoved);
+        System.out.println("저장된 사용자 채널 목록에서 제거: "
+                + userRelationshipRemoved);
         System.out.println("채널 저장소에서 삭제: " + channelRemoved);
 
         if (userRelationshipRemoved && channelRemoved) {
@@ -165,6 +226,7 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 중복 채널 이름 테스트 ===");
+
         String duplicateChannelName = "중복 테스트 채널 " + testId;
 
         channelService.create(duplicateChannelName, "첫 번째 채널");
@@ -177,24 +239,30 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 메시지 CRUD 테스트 ===");
+
         User messageUser = userService.create(
-                new User("메시지 테스트 사용자 " + testId, "message-" + testId + "@example.com"));
+                new User("메시지 테스트 사용자 " + testId,
+                        "message-" + testId + "@example.com"));
 
         Channel messageChannel = channelService.create(
-                "메시지 테스트 채널 " + testId, "메시지를 테스트하기 위한 채널");
+                "메시지 테스트 채널 " + testId,
+                "메시지를 테스트하기 위한 채널"
+        );
 
         Message message = messageService.create(
-                "첫 번째 메시지", messageUser.getId(), messageChannel.getId());
+                "첫 번째 메시지",
+                messageUser.getId(),
+                messageChannel.getId()
+        );
 
-        // 메시지 생성 후에는 서비스가 저장한 최신 사용자와 채널을 다시 조회합니다.
         messageUser = userService.findById(messageUser.getId()).orElseThrow();
-        messageChannel = channelService.findById(messageChannel.getId()).orElseThrow();
+        messageChannel =
+                channelService.findById(messageChannel.getId()).orElseThrow();
 
         UUID userId = messageUser.getId();
         UUID channelId = messageChannel.getId();
         UUID messageId = message.getId();
 
-        // 사용자와 채널의 메시지 목록 대신 메시지 저장소를 조회합니다.
         boolean userHasMessage = messageService.findAll().stream()
                 .anyMatch(item -> item.getId().equals(messageId)
                         && item.getAuthorId().equals(userId));
@@ -225,7 +293,6 @@ public class JavaApplication {
 
         messageService.delete(message.getId());
 
-        // 메시지 삭제 후 저장소에 메시지가 남아 있지 않은지 확인합니다.
         boolean userStillHasMessage = messageService.findAll().stream()
                 .anyMatch(item -> item.getId().equals(messageId)
                         && item.getAuthorId().equals(userId));
@@ -243,17 +310,21 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 채널 삭제 시 메시지 처리 테스트 ===");
+
         User deleteTestUser = userService.create(
                 new User("채널 삭제 테스트 사용자 " + testId,
                         "channel-delete-" + testId + "@example.com"));
 
         Channel deleteTestChannel = channelService.create(
-                "채널 삭제 테스트 " + testId, "메시지 삭제 확인용 채널");
+                "채널 삭제 테스트 " + testId,
+                "메시지 삭제 확인용 채널"
+        );
 
         Message deleteTestMessage = messageService.create(
                 "채널 삭제 시 함께 처리할 메시지",
                 deleteTestUser.getId(),
-                deleteTestChannel.getId());
+                deleteTestChannel.getId()
+        );
 
         channelService.delete(deleteTestChannel.getId());
 
@@ -264,8 +335,10 @@ public class JavaApplication {
                 .anyMatch(item -> item.getId().equals(deleteTestMessage.getId())
                         && item.getChannelId().equals(deleteTestChannel.getId()));
 
-        System.out.println("메시지 저장소에 메시지가 남아 있는가: " + messageStillInRepository);
-        System.out.println("삭제된 채널의 메시지가 남아 있는가: " + messageStillInChannel);
+        System.out.println("메시지 저장소에 메시지가 남아 있는가: "
+                + messageStillInRepository);
+        System.out.println("삭제된 채널의 메시지가 남아 있는가: "
+                + messageStillInChannel);
 
         if (!messageStillInRepository && !messageStillInChannel) {
             System.out.println("채널 삭제 시 메시지 처리 테스트 성공");
@@ -274,6 +347,7 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 존재하지 않는 메시지 수정 테스트 ===");
+
         try {
             messageService.update(message.getId(), "수정할 수 없는 메시지");
             throw new AssertionError("존재하지 않는 메시지 수정이 허용되었습니다.");
@@ -282,6 +356,7 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 존재하지 않는 메시지 삭제 테스트 ===");
+
         try {
             messageService.delete(message.getId());
             throw new AssertionError("존재하지 않는 메시지 삭제가 허용되었습니다.");
@@ -290,11 +365,13 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 잘못된 사용자 테스트 ===");
+
         try {
             messageService.create(
                     "잘못된 사용자 메시지",
                     UUID.randomUUID(),
-                    messageChannel.getId());
+                    messageChannel.getId()
+            );
 
             throw new AssertionError("잘못된 사용자 ID로 메시지가 생성되었습니다.");
         } catch (IllegalArgumentException e) {
@@ -302,11 +379,13 @@ public class JavaApplication {
         }
 
         System.out.println("\n=== 잘못된 채널 테스트 ===");
+
         try {
             messageService.create(
                     "잘못된 채널 메시지",
                     messageUser.getId(),
-                    UUID.randomUUID());
+                    UUID.randomUUID()
+            );
 
             throw new AssertionError("잘못된 채널 ID로 메시지가 생성되었습니다.");
         } catch (IllegalArgumentException e) {

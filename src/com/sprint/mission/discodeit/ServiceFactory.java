@@ -1,22 +1,32 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.file.FileUserService;
-import com.sprint.mission.discodeit.service.file.FileChannelService;
-import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 
 public class ServiceFactory {
 
-    private static final FileUserService USER_SERVICE =
-            new FileUserService();
+    private static final BasicUserService USER_SERVICE =
+            new BasicUserService(new FileUserRepository());
 
-    private static final FileChannelService CHANNEL_SERVICE =
-            new FileChannelService(USER_SERVICE);
+    private static final BasicChannelService CHANNEL_SERVICE =
+            new BasicChannelService(
+                    new FileChannelRepository(),
+                    USER_SERVICE
+            );
 
-    private static final FileMessageService MESSAGE_SERVICE =
-            new FileMessageService(USER_SERVICE, CHANNEL_SERVICE);
+    private static final BasicMessageService MESSAGE_SERVICE =
+            new BasicMessageService(
+                    new FileMessageRepository(),
+                    USER_SERVICE,
+                    CHANNEL_SERVICE
+            );
 
     static {
         USER_SERVICE.setMessageService(MESSAGE_SERVICE);

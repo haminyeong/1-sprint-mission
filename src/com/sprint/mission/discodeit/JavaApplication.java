@@ -52,12 +52,18 @@ public class JavaApplication {
         System.out.println("\n=== 사용자 CRUD 테스트 ===");
 
         User user1 = userService.create(
-                new User("민영 " + testId,
-                        "minyeong-" + testId + "@example.com"));
+                new User(
+                        "민영 " + testId,
+                        "minyeong-" + testId + "@example.com"
+                )
+        );
 
         User user2 = userService.create(
-                new User("민석 " + testId,
-                        "minseok-" + testId + "@example.com"));
+                new User(
+                        "민석 " + testId,
+                        "minseok-" + testId + "@example.com"
+                )
+        );
 
         System.out.println("사용자 등록 완료");
         System.out.println("사용자 조회: "
@@ -122,8 +128,8 @@ public class JavaApplication {
         User latestUser =
                 userService.findById(user1.getId()).orElseThrow();
 
-        if (latestChannel.hasUser(latestUser)
-                && latestUser.hasChannel(latestChannel)) {
+        if (latestChannel.hasMember(latestUser.getId())
+                && latestUser.hasChannel(latestChannel.getId())) {
             System.out.println("채널 참여 테스트 성공");
         } else {
             throw new AssertionError("채널 참여 테스트 실패");
@@ -137,8 +143,8 @@ public class JavaApplication {
         latestUser =
                 userService.findById(user1.getId()).orElseThrow();
 
-        if (!latestChannel.hasUser(latestUser)
-                && !latestUser.hasChannel(latestChannel)) {
+        if (!latestChannel.hasMember(latestUser.getId())
+                && !latestUser.hasChannel(latestChannel.getId())) {
             System.out.println("채널 나가기 테스트 성공");
         } else {
             throw new AssertionError("채널 나가기 테스트 실패");
@@ -180,8 +186,11 @@ public class JavaApplication {
         System.out.println("\n=== 채널 삭제 후 사용자 관계 제거 테스트 ===");
 
         User relationUser = userService.create(
-                new User("관계 테스트 사용자 " + testId,
-                        "relation-" + testId + "@example.com"));
+                new User(
+                        "관계 테스트 사용자 " + testId,
+                        "relation-" + testId + "@example.com"
+                )
+        );
 
         Channel relationChannel = channelService.create(
                 "관계 테스트 채널 " + testId,
@@ -196,8 +205,8 @@ public class JavaApplication {
         relationUser =
                 userService.findById(relationUser.getId()).orElseThrow();
 
-        if (!relationUser.hasChannel(relationChannel)
-                || !relationChannel.hasUser(relationUser)) {
+        if (!relationUser.hasChannel(relationChannel.getId())
+                || !relationChannel.hasMember(relationUser.getId())) {
             throw new AssertionError("삭제 전 채널 관계 테스트 실패");
         }
 
@@ -210,7 +219,7 @@ public class JavaApplication {
                 userService.findById(relationUserId).orElseThrow();
 
         boolean userRelationshipRemoved =
-                !userAfterChannelDelete.hasChannel(relationChannel);
+                !userAfterChannelDelete.hasChannel(relationChannelId);
 
         boolean channelRemoved =
                 channelService.findById(relationChannelId).isEmpty();
@@ -241,8 +250,11 @@ public class JavaApplication {
         System.out.println("\n=== 메시지 CRUD 테스트 ===");
 
         User messageUser = userService.create(
-                new User("메시지 테스트 사용자 " + testId,
-                        "message-" + testId + "@example.com"));
+                new User(
+                        "메시지 테스트 사용자 " + testId,
+                        "message-" + testId + "@example.com"
+                )
+        );
 
         Channel messageChannel = channelService.create(
                 "메시지 테스트 채널 " + testId,
@@ -312,8 +324,11 @@ public class JavaApplication {
         System.out.println("\n=== 채널 삭제 시 메시지 처리 테스트 ===");
 
         User deleteTestUser = userService.create(
-                new User("채널 삭제 테스트 사용자 " + testId,
-                        "channel-delete-" + testId + "@example.com"));
+                new User(
+                        "채널 삭제 테스트 사용자 " + testId,
+                        "channel-delete-" + testId + "@example.com"
+                )
+        );
 
         Channel deleteTestChannel = channelService.create(
                 "채널 삭제 테스트 " + testId,

@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -34,17 +33,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public User create(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
-        }
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
-        }
-
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new IllegalArgumentException("이메일은 필수입니다.");
-        }
+        validateUser(user);
 
         boolean emailExists = userRepository.findAll()
                 .stream()
@@ -55,7 +44,7 @@ public class JCFUserService implements UserService {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
-        return userRepository.save(user);
+        return save(user);
     }
 
     @Override
@@ -93,6 +82,51 @@ public class JCFUserService implements UserService {
         }
 
         user.update(name, email);
+        return save(user);
+    }
+
+    @Override
+    public void addChannel(UUID userId, UUID channelId) {
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        user.addChannel(channelId);
+        save(user);
+    }
+
+    @Override
+    public void removeChannel(UUID userId, UUID channelId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        user.removeChannel(channelId);
+        save(user);
+    }
+
+    private void validateUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
+        }
+
+        if (user.getName() == null || user.getName().isBlank()) {
+            throw new IllegalArgumentException("이름은 필수입니다.");
+        }
+
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException("이메일은 필수입니다.");
+        }
+    }
+
+    private User save(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
+        }
 
         return userRepository.save(user);
     }
@@ -105,7 +139,7 @@ public class JCFUserService implements UserService {
 
         // 사용자가 작성한 메시지 삭제
         if (messageService != null) {
-            for (Message message : messageService.findAll()) {
+            for (Message message : new ArrayList<>(messageService.findAll())) {
                 if (message.getAuthorId().equals(id)) {
                     messageService.delete(message.getId());
                 }
@@ -114,22 +148,11 @@ public class JCFUserService implements UserService {
 
         // 사용자가 참여한 채널과의 관계 정리
         if (channelService != null) {
-            for (Channel channel : new ArrayList<>(user.getChannels())) {
-                Channel latestChannel = channelService.findById(channel.getId())
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("채널을 찾을 수 없습니다."));
-
-                latestChannel.removeUser(user);
-                channelService.save(latestChannel);
+            for (UUID channelId : new ArrayList<>(user.getChannelIds())) {
+                channelService.leave(channelId, id);
             }
         }
 
-        // 사용자 삭제
         userRepository.deleteById(id);
-    }
-
-    @Override
-    public User save(User user) {
-        return userRepository.save(user);
     }
 }

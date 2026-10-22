@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -31,24 +30,16 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel create(String name, String description) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("채널 이름은 필수입니다.");
-        }
+        validateChannel(name, description);
 
-        if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("채널 설명은 필수입니다.");
-        }
-
-        boolean nameExists = channelRepository.findAll()
-                .stream()
+        boolean nameExists = channelRepository.findAll().stream()
                 .anyMatch(channel -> channel.getName().equals(name));
 
         if (nameExists) {
             throw new IllegalArgumentException("이미 존재하는 채널 이름입니다.");
         }
 
-        Channel channel = new Channel(name, description);
-        return channelRepository.save(channel);
+        return save(new Channel(name, description));
     }
 
     @Override
@@ -67,16 +58,9 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("채널 이름은 필수입니다.");
-        }
+        validateChannel(name, description);
 
-        if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("채널 설명은 필수입니다.");
-        }
-
-        boolean nameExists = channelRepository.findAll()
-                .stream()
+        boolean nameExists = channelRepository.findAll().stream()
                 .anyMatch(existingChannel ->
                         !existingChannel.getId().equals(id)
                                 && existingChannel.getName().equals(name));
@@ -86,11 +70,20 @@ public class JCFChannelService implements ChannelService {
         }
 
         channel.update(name, description);
-        return channelRepository.save(channel);
+        return save(channel);
     }
 
-    @Override
-    public Channel save(Channel channel) {
+    private void validateChannel(String name, String description) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("채널 설명은 필수입니다.");
+        }
+    }
+
+    private Channel save(Channel channel) {
         if (channel == null) {
             throw new IllegalArgumentException("채널 정보는 필수입니다.");
         }
@@ -104,26 +97,18 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        // 해당 채널에 속한 메시지 삭제
         if (messageService != null) {
-            for (Message message : messageService.findAll()) {
+            for (Message message : new ArrayList<>(messageService.findAll())) {
                 if (message.getChannelId().equals(id)) {
                     messageService.delete(message.getId());
                 }
             }
         }
 
-        // 참여 사용자에서 최신 사용자 정보를 조회해 관계 제거
-        for (User user : new ArrayList<>(channel.getUsers())) {
-            User latestUser = userService.findById(user.getId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-            latestUser.removeChannel(channel);
-            userService.save(latestUser);
+        for (UUID userId : new ArrayList<>(channel.getMemberIds())) {
+            userService.removeChannel(userId, id);
         }
 
-        // 채널 삭제
         channelRepository.deleteById(id);
     }
 
@@ -133,19 +118,17 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        User user = userService.findById(userId)
+        userService.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (channel.hasUser(user)) {
+        if (channel.hasMember(userId)) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        channel.addUser(user);
-        user.addChannel(channel);
-
-        channelRepository.save(channel);
-        userService.save(user);
+        channel.addMember(userId);
+        save(channel);
+        userService.addChannel(userId, channelId);
     }
 
     @Override
@@ -154,18 +137,16 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        User user = userService.findById(userId)
+        userService.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (!channel.hasUser(user)) {
+        if (!channel.hasMember(userId)) {
             throw new IllegalArgumentException("참여하지 않은 채널입니다.");
         }
 
-        channel.removeUser(user);
-        user.removeChannel(channel);
-
-        channelRepository.save(channel);
-        userService.save(user);
+        channel.removeMember(userId);
+        save(channel);
+        userService.removeChannel(userId, channelId);
     }
 }

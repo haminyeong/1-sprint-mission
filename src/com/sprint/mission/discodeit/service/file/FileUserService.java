@@ -105,29 +105,35 @@ public class FileUserService implements UserService {
         return userRepository.save(user);
     }
 
+
     @Override
     public void deleteById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // 사용자에게 연결된 메시지 삭제
+        // 해당 사용자가 작성한 메시지 삭제
         if (messageService != null) {
-            for (Message message : new ArrayList<>(user.getMessages())) {
-                messageService.delete(message.getId());
+            for (Message message : messageService.findAll()) {
+                if (message.getAuthorId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
             }
         }
 
-        // 참여 중인 채널에서 사용자 관계 제거
-        for (Channel channel : new ArrayList<>(user.getChannels())) {
-            channel.removeUser(user);
-            user.removeChannel(channel);
+        // 참여 중인 채널에서 최신 채널 정보를 조회해 관계 제거
+        if (channelService != null) {
+            for (Channel joinedChannel : new ArrayList<>(user.getChannels())) {
+                Channel latestChannel = channelService.findById(joinedChannel.getId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-            if (channelService != null) {
-                channelService.save(channel);
+                latestChannel.removeUser(user);
+                channelService.save(latestChannel);
             }
         }
 
+        // 사용자 삭제
         userRepository.deleteById(id);
     }
 }

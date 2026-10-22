@@ -8,7 +8,6 @@ public class Channel extends BaseEntity {
     private String name;
     private String description;
     private List<User> users = new ArrayList<>();
-    private List<Message> messages = new ArrayList<>();
 
     public Channel(String name, String description) {
         super();
@@ -20,6 +19,7 @@ public class Channel extends BaseEntity {
     public String getName() {
         return name;
     }
+
     public String getDescription() {
         return description;
     }
@@ -33,9 +33,6 @@ public class Channel extends BaseEntity {
     public List<User> getUsers() {
         return List.copyOf(users);
     }
-    public List<Message> getMessages() {
-        return List.copyOf(messages);
-    }
 
     public void addUser(User user) {
         if (!users.contains(user)) {
@@ -47,24 +44,19 @@ public class Channel extends BaseEntity {
         users.remove(user);
     }
 
-    public void addMessage(Message message) {
-        if (!messages.contains(message)) {
-            messages.add(message);
-        }
-    }
-
-    public void removeMessage(Message message) {
-        messages.remove(message);
-    }
-
     public boolean hasUser(User user) {
         return users.contains(user);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
 
         Channel channel = (Channel) obj;
         return getId().equals(channel.getId());

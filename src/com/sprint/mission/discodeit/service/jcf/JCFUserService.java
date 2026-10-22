@@ -1,19 +1,24 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.UserService;
-
-import java.util.*;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class JCFUserService implements UserService {
 
     private final UserRepository userRepository;
     private MessageService messageService;
+    private ChannelService channelService;
 
     public JCFUserService() {
         this.userRepository = new JCFUserRepository();
@@ -23,10 +28,12 @@ public class JCFUserService implements UserService {
         this.messageService = messageService;
     }
 
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
+    }
 
     @Override
     public User create(User user) {
-
         if (user == null) {
             throw new IllegalArgumentException("사용자 정보는 필수입니다.");
         }
@@ -63,7 +70,6 @@ public class JCFUserService implements UserService {
 
     @Override
     public User update(UUID id, String name, String email) {
-
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -91,30 +97,37 @@ public class JCFUserService implements UserService {
         return userRepository.save(user);
     }
 
-
-
-
     @Override
     public void deleteById(UUID id) {
-
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 사용자가 작성한 메시지 삭제
-        for (Message message : new java.util.ArrayList<>(user.getMessages())) {
-            messageService.delete(message.getId());
+        if (messageService != null) {
+            for (Message message : messageService.findAll()) {
+                if (message.getAuthorId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
+            }
         }
 
         // 사용자가 참여한 채널과의 관계 정리
-        for (Channel channel : new java.util.ArrayList<>(user.getChannels())) {
-            user.removeChannel(channel);
-            channel.removeUser(user);
+        if (channelService != null) {
+            for (Channel channel : new ArrayList<>(user.getChannels())) {
+                Channel latestChannel = channelService.findById(channel.getId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException("채널을 찾을 수 없습니다."));
+
+                latestChannel.removeUser(user);
+                channelService.save(latestChannel);
+            }
         }
 
-        // 저장소에서 사용자 삭제
+        // 사용자 삭제
         userRepository.deleteById(id);
     }
+
     @Override
     public User save(User user) {
         return userRepository.save(user);

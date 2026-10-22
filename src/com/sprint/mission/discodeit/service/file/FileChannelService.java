@@ -98,24 +98,30 @@ public class FileChannelService implements ChannelService {
         return channelRepository.save(channel);
     }
 
+
     @Override
     public void delete(UUID id) {
         Channel channel = channelRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        // 채널에 연결된 메시지 삭제
+        // 해당 채널에 속한 메시지 삭제
         if (messageService != null) {
-            for (Message message : new ArrayList<>(channel.getMessages())) {
-                messageService.delete(message.getId());
+            for (Message message : messageService.findAll()) {
+                if (message.getChannelId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
             }
         }
 
-        // 참여 사용자와 채널의 관계 제거
+        // 최신 채널 정보에 연결된 사용자 관계 정리
         for (User user : new ArrayList<>(channel.getUsers())) {
-            user.removeChannel(channel);
-            userService.save(user);
-            channel.removeUser(user);
+            User latestUser = userService.findById(user.getId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            latestUser.removeChannel(channel);
+            userService.save(latestUser);
         }
 
         // 채널 삭제

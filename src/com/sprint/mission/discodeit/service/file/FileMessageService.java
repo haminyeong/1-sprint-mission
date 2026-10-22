@@ -19,7 +19,10 @@ public class FileMessageService implements MessageService {
     private final UserService userService;
     private final ChannelService channelService;
 
-    public FileMessageService(UserService userService, ChannelService channelService) {
+    public FileMessageService(
+            UserService userService,
+            ChannelService channelService
+    ) {
         this.messageRepository = new FileMessageRepository();
         this.userService = userService;
         this.channelService = channelService;
@@ -35,24 +38,17 @@ public class FileMessageService implements MessageService {
             throw new IllegalArgumentException("작성자와 채널 정보는 필수입니다.");
         }
 
-        User user = userService.findById(authorId)
+        userService.findById(authorId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        Channel channel = channelService.findById(channelId)
+        channelService.findById(channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
         Message message = new Message(content, authorId, channelId);
-        messageRepository.save(message);
 
-        user.addMessage(message);
-        channel.addMessage(message);
-
-        userService.save(user);
-        channelService.save(channel);
-
-        return message;
+        return messageRepository.save(message);
     }
 
     @Override
@@ -76,26 +72,15 @@ public class FileMessageService implements MessageService {
         }
 
         message.update(content);
+
         return messageRepository.save(message);
     }
 
     @Override
     public void delete(UUID id) {
-        Message message = messageRepository.findById(id)
+        messageRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
-
-        userService.findById(message.getAuthorId())
-                .ifPresent(user -> {
-                    user.removeMessage(message);
-                    userService.save(user);
-                });
-
-        channelService.findById(message.getChannelId())
-                .ifPresent(channel -> {
-                    channel.removeMessage(message);
-                    channelService.save(channel);
-                });
 
         messageRepository.deleteById(id);
     }

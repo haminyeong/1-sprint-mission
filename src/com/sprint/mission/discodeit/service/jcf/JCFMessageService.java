@@ -2,16 +2,13 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +29,6 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(String content, UUID authorId, UUID channelId) {
-
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
@@ -45,22 +41,17 @@ public class JCFMessageService implements MessageService {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        User user = userService.findById(authorId)
+        userService.findById(authorId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        Channel channel = channelService.findById(channelId)
+        channelService.findById(channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 채널입니다."));
 
         Message message = new Message(content, authorId, channelId);
 
-        messageRepository.save(message);
-
-        user.addMessage(message);
-        channel.addMessage(message);
-
-        return message;
+        return messageRepository.save(message);
     }
 
     @Override
@@ -73,10 +64,8 @@ public class JCFMessageService implements MessageService {
         return messageRepository.findAll();
     }
 
-
     @Override
     public Message update(UUID id, String content) {
-
         Message message = messageRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
@@ -90,23 +79,12 @@ public class JCFMessageService implements MessageService {
         return messageRepository.save(message);
     }
 
-
     @Override
     public void delete(UUID id) {
-
-        Message message = messageRepository.findById(id)
+        messageRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
-        // 작성자의 메시지 목록에서 제거
-        userService.findById(message.getAuthorId())
-                .ifPresent(user -> user.removeMessage(message));
-
-        // 채널의 메시지 목록에서 제거
-        channelService.findById(message.getChannelId())
-                .ifPresent(channel -> channel.removeMessage(message));
-
-        // 저장소에서 메시지 삭제
         messageRepository.deleteById(id);
     }
 }

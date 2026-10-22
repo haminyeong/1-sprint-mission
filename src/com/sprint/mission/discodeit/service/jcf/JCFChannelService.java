@@ -104,18 +104,26 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
+        // 해당 채널에 속한 메시지 삭제
         if (messageService != null) {
-            for (Message message : new ArrayList<>(channel.getMessages())) {
-                messageService.delete(message.getId());
+            for (Message message : messageService.findAll()) {
+                if (message.getChannelId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
             }
         }
 
+        // 참여 사용자에서 최신 사용자 정보를 조회해 관계 제거
         for (User user : new ArrayList<>(channel.getUsers())) {
-            user.removeChannel(channel);
-            userService.save(user);
-            channel.removeUser(user);
+            User latestUser = userService.findById(user.getId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            latestUser.removeChannel(channel);
+            userService.save(latestUser);
         }
 
+        // 채널 삭제
         channelRepository.deleteById(id);
     }
 
